@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String?
+  email          String?   @unique
+  role           String    @default("user")
+  address        String?
+  phoneNumber    String?
+  birthDate      DateTime?
+  image          String?
+  hashedPassword String?
+  otp            String?
+  otpExpireAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  cart Cart?
+  orders Order[]
+  UserData UserData[]
+
+  @@index([phoneNumber])
+}
+
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  image       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productIds String[]  @db.ObjectId
+  products   Product[] @relation(fields: [productIds], references: [id])
+}
+
+model Product {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  price       Int
+  quantity    Int
+  sold        Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isActive    Boolean  @default(false)
+  images      String[]
+
+  categoryIds String[]   @db.ObjectId
+  category    Category[] @relation(fields: [categoryIds], references: [id])
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  Import     Import[]
+}
+
+model Cart {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  cartItems CartItem[]
+}
+
+model CartItem {
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  quantity  Int
+  cartId    String @db.ObjectId
+  productId String @db.ObjectId
+
+  cart    Cart    @relation(fields: [cartId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([productId, cartId])
+}
+
+model Order {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  phone     String   @default("")
+  address   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @db.ObjectId
+  status    String   @default("Comfirmed")
+  user User @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+}
+
+model OrderItem {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  quantity Int
+  price Int
+  orderId String @db.ObjectId
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId String  @db.ObjectId
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model UserData {
+  userId     String   @map("_id") @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  recentCare String[]
+  recentAdd  String[]
+  recentBuy  String[]
+
+  @@id([userId])
+}
+
+model Import {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  productId String   @db.ObjectId
+  quantity  Int
+  createdAt DateTime @default(now())
+  price     Int?
+  product   Product  @relation(fields: [productId], references: [id])
+}

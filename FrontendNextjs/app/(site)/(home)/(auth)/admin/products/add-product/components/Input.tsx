@@ -1,0 +1,33 @@
+'use client'
+
+interface InputProps {
+    id:String;
+    label?:String;
+    type?:String|'text';
+    placeholder?:String;
+    required?:boolean;
+    onChange?:(event:any)=>void;
+}
+
+const Input: React.FC<InputProps> = ({id, label, type, placeholder, required, onChange}) => {
+  return (
+    <div className="mb-6">
+        <label htmlFor={`${id}`} className="block mb-2  text-sm text-gray-500 font-semibold ">{label}</label>
+        <input
+          type={`${type}`}
+          id={`${id}`}
+          name={`${id}`}  // Add this line to set the name attribute
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+          placeholder={`${placeholder ? placeholder : ""}`}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+              if (onChange) {
+                  onChange(event);
+              }
+          }}
+          required={required ?? false}
+        />
+    </div> 
+  )
+}
+
+export default Input;
